@@ -38,6 +38,7 @@ class Configuration implements ConfigurationInterface
             ->arrayNode('aws')
                 ->info("AWS configuration")
                 ->children()
+                    ->variableNode('endpoint')->end()
                     ->scalarNode('region')->end()
                     ->scalarNode('version')->end()
                     ->scalarNode('key')->end()
