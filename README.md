@@ -1,6 +1,8 @@
 # DynamoDb Session Handler bundle #
 
-This Symfony 2.1 bundle allows you to use the DynamoDb Web Service to store your sessions
+This Symfony 2.x bundle allows you to use the DynamoDb Web Service to store your sessions
+
+__Starting from version 1.0 this bundle requires the AWS PHP SDK version 3.0+, if you're using the 2.x SDK use the latest 0.x version__
 
 Installation
 ============
@@ -10,7 +12,7 @@ Simply add the following to your composer.json file
 ```js
 {
     "require": {
-        "gwk/dynamo-session-bundle": "0.*"
+        "gwk/dynamo-session-bundle": "1.*"
     }
 }
 ```
@@ -48,8 +50,9 @@ gwk_dynamo_session:
     aws:
         region: us-east-1 # AWS Region to use
         version: latest # AWS API version
-        key: AKA123456789 # Your AWS key
-        secret: abcdeffhij # Your AWS secret
+        credentials:
+            key: AKA123456789 # Your AWS key
+            secret: abcdeffhij # Your AWS secret
 ```
 
 If you use AWS IAM Roles and your instance's permissions allow access to the appropriate DynamoDb Table you can leave out the credentials.
