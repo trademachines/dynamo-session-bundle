@@ -161,7 +161,7 @@ class SessionHandler implements SessionHandlerInterface {
         }
 
         $result = $this->client->createTable($params);
-        $this->client->waitUntil('table_exists', array('TableName' => $tableName));
+        $this->client->waitUntil('TableExists', array('TableName' => $tableName));
 
         return $result;
     }
