@@ -8,15 +8,12 @@
 
 namespace GWK\DynamoSessionBundle\DependencyInjection\Compiler;
 
-use Aws\Common\Exception\InstanceProfileCredentialsException;
-use Aws\Common\Exception\InvalidArgumentException;
 use Aws\DynamoDb\DynamoDbClient;
+use Aws\DynamoDb\Exception\DynamoDbException;
 use Aws\DynamoDb\Exception\ResourceNotFoundException;
 use GWK\DynamoSessionBundle\Handler\SessionHandler;
-use Guzzle\Service\Resource\Model;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use Symfony\Component\DependencyInjection\Exception\LogicException;
 
 class DynamoDbTablePass implements CompilerPassInterface
 {
@@ -36,11 +33,12 @@ class DynamoDbTablePass implements CompilerPassInterface
         $tableName = $container->getParameter("dynamo_session_table");
 
         try {
-            /** @var $table Model */
             $client->describeTable(array('TableName' => $tableName));
-        } catch(InstanceProfileCredentialsException $e) {
-            throw new LogicException("Invalid DynamoDB security credentials or insufficient permissions", $e->getCode(), $e);
-        } catch(ResourceNotFoundException $e) {
+        } catch(DynamoDbException $e) {
+            if ('ResourceNotFoundException' !== $e->getAwsErrorCode()) {
+                throw $e;
+            }
+
             /** @var $handler SessionHandler */
             $handler = $container->get("dynamo_session_handler");
 
