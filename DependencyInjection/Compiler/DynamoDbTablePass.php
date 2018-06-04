@@ -10,20 +10,19 @@ namespace GWK\DynamoSessionBundle\DependencyInjection\Compiler;
 
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Exception\DynamoDbException;
-use Aws\DynamoDb\Exception\ResourceNotFoundException;
 use GWK\DynamoSessionBundle\Handler\SessionHandler;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class DynamoDbTablePass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        if(!$container->hasDefinition("dynamo_session_client") && !$container->hasAlias("dynamo_session_client")) {
+        if (!$container->hasDefinition("dynamo_session_client") && !$container->hasAlias("dynamo_session_client")) {
             return;
         }
 
-        if($container->getAlias('session.handler') != "dynamo_session_handler") {
+        if ($container->getAlias('session.handler') != "dynamo_session_handler") {
             return;
         }
 
@@ -34,7 +33,7 @@ class DynamoDbTablePass implements CompilerPassInterface
 
         try {
             $client->describeTable(array('TableName' => $tableName));
-        } catch(DynamoDbException $e) {
+        } catch (DynamoDbException $e) {
             if ('ResourceNotFoundException' !== $e->getAwsErrorCode()) {
                 throw $e;
             }
@@ -42,10 +41,10 @@ class DynamoDbTablePass implements CompilerPassInterface
             /** @var $handler SessionHandler */
             $handler = $container->get("dynamo_session_handler");
 
-            $read_capacity = $container->getParameter("dynamo_session_read_capacity");
+            $read_capacity  = $container->getParameter("dynamo_session_read_capacity");
             $write_capacity = $container->getParameter("dynamo_session_write_capacity");
 
-            $handler->getHandler()->createSessionsTable($read_capacity, $write_capacity);
+            $handler->createSessionTable($read_capacity, $write_capacity);
         }
     }
 }

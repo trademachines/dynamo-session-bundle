@@ -24,7 +24,12 @@ class SessionHandler implements SessionHandlerInterface {
     protected $client;
 
     /**
-     * @var \Aws\DynamoDb\Session\SessionHandler
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * @var \Aws\DynamoDb\SessionHandler
      */
     protected $handler;
 
@@ -37,10 +42,11 @@ class SessionHandler implements SessionHandlerInterface {
 
         $config['dynamodb_client'] = $client;
         $this->handler = \Aws\DynamoDb\SessionHandler::fromClient($client, $config);
+        $this->config = $config;
     }
 
     /**
-     * @return \Aws\DynamoDb\Session\SessionHandler
+     * @return \Aws\DynamoDb\SessionHandler
      */
     public function getHandler() {
         return $this->handler;
@@ -114,4 +120,49 @@ class SessionHandler implements SessionHandlerInterface {
         return $this->handler->write($session_id, $session_data);
     }
 
+    /**
+     * @param int $readCapacityUnits
+     * @param int $writeCapacityUnits
+     *
+     * @return mixed
+     */
+    public function createSessionTable($readCapacityUnits, $writeCapacityUnits)
+    {
+        $tableName = $this->config['table_name'];
+        $hashKey   = 'id';
+        $params    = array(
+            'TableName'             => $tableName,
+            'ProvisionedThroughput' => array(
+                'ReadCapacityUnits'  => (int) $readCapacityUnits,
+                'WriteCapacityUnits' => (int) $writeCapacityUnits,
+            ),
+        );
+
+        if ($this->client->getApi()->getApiVersion() < '2012-08-10') {
+            $params['KeySchema'] = array(
+                'HashKeyElement' => array(
+                    'AttributeName' => $hashKey,
+                    'AttributeType' => 'S',
+                ),
+            );
+        } else {
+            $params['AttributeDefinitions'] = array(
+                array(
+                    'AttributeName' => $hashKey,
+                    'AttributeType' => 'S',
+                ),
+            );
+            $params['KeySchema']            = array(
+                array(
+                    'AttributeName' => $hashKey,
+                    'KeyType'       => 'HASH',
+                ),
+            );
+        }
+
+        $result = $this->client->createTable($params);
+        $this->client->waitUntil('table_exists', array('TableName' => $tableName));
+
+        return $result;
+    }
 }
